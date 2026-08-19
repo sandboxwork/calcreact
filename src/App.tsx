@@ -184,7 +184,9 @@ function App() {
     else if (label === 'AC') dispatch({ type: 'clear' })
     else if (label === '+/-') dispatch({ type: 'sign' })
     else if (label === '%') dispatch({ type: 'percent' })
-    else dispatch({ type: 'operator', value: label })
+    else if (label === '+' || label === '-' || label === '×' || label === '÷') {
+      dispatch({ type: 'operator', value: label })
+    }
   }
 
   useEffect(() => {
