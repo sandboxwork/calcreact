@@ -1,0 +1,35 @@
+name: Export dependencies
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Pack dependencies
+        run: tar -czf node_modules.tgz node_modules package-lock.json
+
+      - name: Upload dependency artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: calcreact-node-modules
+          path: node_modules.tgz
+          retention-days: 1
+          if-no-files-found: error
