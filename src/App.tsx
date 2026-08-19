@@ -1,6 +1,7 @@
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 
 type Operator = '+' | '-' | '×' | '÷'
+type Theme = 'light' | 'dark'
 
 type State = {
   display: string
@@ -51,6 +52,12 @@ function formatNumber(value: number) {
 
   if (text.length <= MAX_DISPLAY_LENGTH) return text
   return rounded.toExponential(8)
+}
+
+function getInitialTheme(): Theme {
+  const savedTheme = window.localStorage.getItem('calcreact-theme')
+  if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
 }
 
 function reducer(state: State, action: Action): State {
@@ -176,6 +183,7 @@ const buttons = [
 
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
 
   const press = (label: (typeof buttons)[number]) => {
     if (/^\d$/.test(label)) dispatch({ type: 'digit', value: label })
@@ -188,6 +196,12 @@ function App() {
       dispatch({ type: 'operator', value: label })
     }
   }
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+    window.localStorage.setItem('calcreact-theme', theme)
+  }, [theme])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -215,7 +229,22 @@ function App() {
       <section className="calculator" aria-label="계산기">
         <header className="calculator__header">
           <span>CalcReact</span>
-          <span className="calculator__hint">Keyboard ready</span>
+          <div className="calculator__controls">
+            <span className="calculator__hint">Keyboard ready</span>
+            <button
+              className="theme-toggle"
+              type="button"
+              role="switch"
+              aria-checked={theme === 'dark'}
+              aria-label={theme === 'dark' ? '밝은 모드로 전환' : '다크 모드로 전환'}
+              title={theme === 'dark' ? '밝은 모드로 전환' : '다크 모드로 전환'}
+              onClick={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
+            >
+              <span className="theme-toggle__sun" aria-hidden="true">☀</span>
+              <span className="theme-toggle__moon" aria-hidden="true">☾</span>
+              <span className="theme-toggle__thumb" aria-hidden="true" />
+            </button>
+          </div>
         </header>
 
         <div className="display" aria-live="polite">
